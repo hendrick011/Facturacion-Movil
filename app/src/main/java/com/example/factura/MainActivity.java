@@ -2,21 +2,20 @@ package com.example.factura;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 
-
 public class MainActivity extends AppCompatActivity {
 
-    EditText editext1, editext2, editext3, editext4;
-
-    Button botonguardar;
+    EditText editext1, editext2, editext3, editext4; //LAS 4 CAJAS DE TEXTO DE TEXTO
 
     Button boton1;
     Button boton2;
@@ -31,11 +30,7 @@ public class MainActivity extends AppCompatActivity {
     Button botondot;
     Button botonrojo;
 
-    //BASE DE DATOS
-
-    Button botonamarillo;
-
-
+    //Button botonguardar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +38,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toast.makeText(this, "Bienvenido", Toast.LENGTH_LONG).show();
 
-        ///////
-        editext1 = (EditText) findViewById(R.id.editText1);
-        editext2 = (EditText) findViewById(R.id.editText2);
+        //editext1 = (EditText) findViewById(R.id.editText1);
+        //editext2 = (EditText) findViewById(R.id.editText2);
+        //botonguardar = (Button) findViewById(R.id.botonamarillo);
 
-
-        botonguardar = (Button) findViewById(R.id.botonamarillo);
-
-
-
-
-
-//////////////////////////////////////////
         editext1 = (EditText) findViewById(R.id.editText1);
         editext2 = (EditText) findViewById(R.id.editText2);
         editext3 = (EditText) findViewById(R.id.editText3);
@@ -198,23 +185,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
     }
-    public void Guardar(View view){
-        String nombre = editext1.getText().toString();
+    /*public void Guardar(View view){
+      String nombre = editext1.getText().toString();
         String precio = editext2.getText().toString();
+        BaseHelper baseHelper = new BaseHelper(this,"FACTURADB", null, 1);
+        SQLiteDatabase db = baseHelper.getReadableDatabase();
+        if (db!=null){
+           Cursor c = db.rawQuery("SELECT Nombre FROM productos WHERE id = 1", null);
+        }
+    }*/
+
+    public void Cargar (){
+        TextView textView0;
+
         BaseHelper baseHelper = new BaseHelper(this,"FACTURADB", null, 1);
         SQLiteDatabase db = baseHelper.getWritableDatabase();
         if (db!=null){
-            ContentValues Registro = new ContentValues();
-            Registro.put("Nombre",nombre);
-            Registro.put("Precio", precio);
-            long i = db.insert("productos",null,Registro);
-            if (i>0){
-                Toast.makeText(this, "Contacto Agegado", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "ERROR", Toast.LENGTH_SHORT).show();
+            Cursor c = db.rawQuery("SELECT Nombre FROM productos WHERE id = 1", null);
+            int cantidad = c.getCount();
+            int i = 0;
+            String [] arreglo = new String[cantidad];
+            if (c.moveToFirst()) {
+                do {
+                    String linea = c.getInt(0)+""+c.getString(1)+""+c.getString(2);
+
+                    arreglo[i] = linea;
+                    i++;
+                }while (c.moveToNext());
             }
+
         }
 
     }
