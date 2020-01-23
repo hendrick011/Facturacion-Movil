@@ -1,126 +1,307 @@
-------------------------DBOPERATIONS----------------------
+package com.example.factura;
 
-<?php 
+import androidx.appcompat.app.AppCompatActivity;
 
-	class DbOperations{
-		private $con; 
-		function __construct(){
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
-			require_once dirname(__FILE__).'/DbConnect.php';
-			$db = new DbConnect();
-			$this->con = $db->connect();
-		}
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-		/*CRUD -> C -> CREATE */
+    private TextView textView1, textView2, textView3, textView4, textViewSalida, textViewS01,
+            textViewS02, textViewS03, textViewS04, textViewS05, textViewS06, textViewTotal1, textViewTotal2;
 
-		public function createUser($username, $pass, $email){
-			if($this->isUserExist($username,$email)){
-				return 0; 
-			}else{
-				$password = md5($pass);
-				$stmt = $this->con->prepare("INSERT INTO `users` (`id`, `username`, `password`, `email`) VALUES (NULL, ?, ?, ?);");
-				$stmt->bind_param("sss",$username,$password,$email);
+    private Button boton1, boton2, boton3, boton4, boton5, boton6, boton7, boton8, boton9, boton0;
+    private Button botondot, botonrojo, botonverde;
 
-				if($stmt->execute()){
-					return 1; 
-				}else{
-					return 2; 
-				}
-			}
-		}
+    private int contador, contalinea, total;
 
-		public function userLogin($username, $pass){
-			$password = md5($pass);
-			$stmt = $this->con->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
-			$stmt->bind_param("ss",$username,$password);
-			$stmt->execute();
-			$stmt->store_result(); 
-			return $stmt->fetch_all
-		}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Toast.makeText(this, "Bienvenido", Toast.LENGTH_SHORT).show();
 
-		public function getUserByUsername($username){
-			$stmt = $this->con->prepare("SELECT * FROM users WHERE username = ?");
-			$stmt->bind_param("s",$username);
-			$stmt->execute();
-			return $stmt->get_result()->fetch_assoc();
- 		}
-		
+        boton0 = (Button) findViewById(R.id.boton0);
+        boton1 = (Button) findViewById(R.id.boton1);
+        boton2 = (Button) findViewById(R.id.boton2);
+        boton3 = (Button) findViewById(R.id.boton3);
+        boton4 = (Button) findViewById(R.id.boton4);
+        boton5 = (Button) findViewById(R.id.boton5);
+        boton6 = (Button) findViewById(R.id.boton6);
+        boton7 = (Button) findViewById(R.id.boton7);
+        boton8 = (Button) findViewById(R.id.boton8);
+        boton9 = (Button) findViewById(R.id.boton9);
+        botondot = (Button) findViewById(R.id.botondot);
+        botonrojo = (Button) findViewById(R.id.botonrojo);
+        botonverde = (Button) findViewById(R.id.botonverde);
+        boton0.setOnClickListener(this);
+        boton1.setOnClickListener(this);
+        boton2.setOnClickListener(this);
+        boton3.setOnClickListener(this);
+        boton4.setOnClickListener(this);
+        boton5.setOnClickListener(this);
+        boton6.setOnClickListener(this);
+        boton7.setOnClickListener(this);
+        boton8.setOnClickListener(this);
+        boton9.setOnClickListener(this);
+        botonverde.setOnClickListener(this);
+        botonrojo.setOnClickListener(this);
+        botondot.setOnClickListener(this);
+        textView1 = (TextView) findViewById(R.id.textView1);
+        textView2 = (TextView) findViewById(R.id.textView2);
+        textView3 = (TextView) findViewById(R.id.textView3);
+        textView4 = (TextView) findViewById(R.id.textView4);
+        textViewS01 = (TextView) findViewById(R.id.textViewS01);
+        textViewS02 = (TextView) findViewById(R.id.textViewS02);
+        textViewS03 = (TextView) findViewById(R.id.textViewS03);
+        textViewS04 = (TextView) findViewById(R.id.textViewS04);
+        textViewS05 = (TextView) findViewById(R.id.textViewS05);
+        textViewS06 = (TextView) findViewById(R.id.textViewS06);
 
-		private function isUserExist($username, $email){
-			$stmt = $this->con->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-			$stmt->bind_param("ss", $username, $email);
-			$stmt->execute(); 
-			$stmt->store_result(); 
-			return $stmt->num_rows > 0; 
-		}
-        
-		public function createClientes($cedula, $nombre, $direccion, $ruta, $celular){
-			if($this->isClientesExist($cedula)){
-				$stmt = $this->con->prepare("UPDATE `clientes` SET `nombre` = ?, `direccion` = ?, `ruta` = ?, `celular` = ?  WHERE cedula = ?;");
-				$stmt->bind_param("sssss",$nombre,$direccion,$ruta,$celular,$cedula);
+        textViewTotal1 = (TextView) findViewById(R.id.textViewTotal1);
+        textViewTotal2 = (TextView) findViewById(R.id.textViewTotal2);
 
-				if($stmt->execute()){
-					return 3; 
-				}else{
-					return 2; 
-				}
-			}else{
-				$stmt = $this->con->prepare("INSERT INTO `clientes` (`id`, `cedula`, `nombre`, `direccion`, `ruta`, `celular`) VALUES (NULL, ?, ?, ?, ?, ?);");
-				$stmt->bind_param("sssss",$cedula,$nombre,$direccion, $ruta, $celular);
 
-				if($stmt->execute()){
-					return 1; 
-				}else{
-					return 2; 
-				}
-			}
-		}
+        textViewSalida = (TextView) findViewById(R.id.textViewSalida);
+        contador = 1;
+        contalinea = 1;
+        total = 0;
 
-		private function isClientesExist($cedula){
-			$stmt = $this->con->prepare("SELECT id FROM clientes WHERE cedula = ? ");
-			$stmt->bind_param("s", $cedula);
-			$stmt->execute(); 
-			$stmt->store_result(); 
-			return $stmt->num_rows > 0; 
-		}
+        Guardar();
+    }
 
-		public function buscaClientes($cedula){
-			$stmt = $this->con->prepare("SELECT * FROM clientes WHERE cedula = ?");
-			$stmt->bind_param("s",$cedula);
-			$stmt->execute();
-			return $stmt->get_result()->fetch_assoc();
-		}
-	}
+    public void Guardar(){
+        SQLiteBaseHelper admin = new SQLiteBaseHelper(this,"administracion", null, 1);
+        SQLiteDatabase BaseDeDatos = admin.getWritableDatabase();
+        try{
+            ContentValues Registro = new ContentValues();
+            Registro.put("cod", "1");
+            Registro.put("nombre", "Agua");
+            Registro.put("precio", 10);
+            Registro.put("cod", "2");
+            Registro.put("nombre", "Jugo");
+            Registro.put("precio", 30);
+           /* Registro.put("cod", "3");
+            Registro.put("nombre", "Refresco");
+            Registro.put("precio", 25);*/// Error inserting cod=3 nombre=Refresco precio=25
+            BaseDeDatos.insert("productos", null, Registro);
+            BaseDeDatos.close();
+        } catch (Exception e){
+            Toast.makeText(this, "ERROR: "+ e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
 
-------------------------------------USERlOGIN---------------------------
 
-<?php 
+    @Override
+    public void onClick(View view) {
 
-require_once '../includes/DbOperations.php';
+        String salida = "";
 
-$response = array(); 
+        if(view == boton0) {
+            salida = textViewSalida.getText().toString() + "0";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton1) {
+            salida = textViewSalida.getText().toString() + "1";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton2) {
+            salida = textViewSalida.getText().toString() + "2";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton3) {
+            salida = textViewSalida.getText().toString() + "3";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton4) {
+            salida = textViewSalida.getText().toString() + "4";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton5) {
+            salida = textViewSalida.getText().toString() + "5";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton6) {
+            salida = textViewSalida.getText().toString() + "6";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton7) {
+            salida = textViewSalida.getText().toString() + "7";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton8) {
+            salida = textViewSalida.getText().toString() + "8";
+            textViewSalida.setText(salida);
+        }
+        if(view == boton9) {
+            salida = textViewSalida.getText().toString() + "9";
+            textViewSalida.setText(salida);
+        }
 
-if($_SERVER['REQUEST_METHOD']=='POST'){
-	if(isset($_POST['username']) and isset($_POST['password'])){
-		$db = new DbOperations(); 
+        if(view == botonverde) {
+            salida = textViewSalida.getText().toString()+"        ";
+            Toast.makeText(this, salida, Toast.LENGTH_LONG).show();
+            if (contador == 1) {
+                salida = textViewSalida.getText().toString();
+                textView1.setText(salida);
+                textViewSalida.setText("");
+                contador = 2;
+            } else if (contador == 2) {
+                salida = textViewSalida.getText().toString();
+                textView2.setText(salida);
+                textViewSalida.setText("");
+                contador = 3;
+            } else if (contador == 3) {
+                salida = textViewSalida.getText().toString();
+                textView3.setText(salida);
+                textViewSalida.setText("");
+                contador = 4;
+            } else if (contador == 4) {
+                salida = textViewSalida.getText().toString();
+                textView4.setText(salida);
+                textViewSalida.setText("");
+                contador = 1;
 
-		if($db->userLogin($_POST['username'], $_POST['password'])){
-			$user = $db->getUserByUsername($_POST['username']);
-			$response['error'] = false; 
-			$response['message'] = "welcome";
-			$response['id'] = $user['id'];
-			$response['email'] = $user['email'];
-			$response['username'] = $user['username'];
+                SQLiteBaseHelper admin = new SQLiteBaseHelper(this, "administracion", null, 1);
+                SQLiteDatabase BaseDeDatos = admin.getWritableDatabase();
 
-		}else{
-			$response['error'] = true; 
-			$response['message'] = "Invalid username or password";			
-		}
+                String codigo = textView3.getText().toString();
 
-	}else{
-		$response['error'] = true; 
-		$response['message'] = "Required fields are missing";
-	}
+                if (!codigo.isEmpty()) {
+                    Cursor c1 = BaseDeDatos.rawQuery
+                            ("select nombre, precio from productos where cod =" + codigo, null);
+
+                    if (c1.moveToFirst()) {
+                        textView3.setText(c1.getString(0));
+                        textViewSalida.setText(c1.getString(1));
+                        BaseDeDatos.close();
+                    } else {
+                        Toast.makeText(this, "No existe", Toast.LENGTH_SHORT).show();
+                        BaseDeDatos.close();
+                    }
+                } else {
+                    Toast.makeText(this, "No existe", Toast.LENGTH_SHORT).show();
+                }
+
+                String cantidad = textView4.getText().toString();
+                String precio = textViewSalida.getText().toString();
+
+                 int cant = Integer.parseInt(cantidad);
+                 int price = Integer.parseInt(precio);
+                int resultado1 = 0;
+                int resultado2 = 0;
+                int resultado3 = 0;
+                int resultado4 = 0;
+                int resultado5 = 0;
+
+                salida = textView1.getText().toString()+" "+textView2.getText().toString()+" "+ textView3.getText().toString()+" "+textView4.getText().toString()+" $"+textViewSalida.getText().toString();
+                if(contalinea == 1){
+                    textViewS01.setText(salida);
+                    contalinea=2;
+
+                     resultado1 = cant*price;
+                     textViewTotal1.setText(""+resultado1);
+
+                    textView1.setText("Mesa");
+                    textView2.setText("Cuenta");
+                    textView3.setText("Producto");
+                    textView4.setText("Cantidad");
+                    textViewSalida.setText("");
+
+                } else if(contalinea == 2){
+                    textViewS02.setText(salida);
+                    contalinea=3;
+
+                     String i = textViewTotal1.getText().toString();
+                     int ii = Integer.parseInt(i);
+                     resultado2 = cant*price+ii;
+                     textViewTotal1.setText(""+resultado2);
+
+                    textView1.setText("Mesa");
+                    textView2.setText("Cuenta");
+                    textView3.setText("Producto");
+                    textView4.setText("Cantidad");
+                    textViewSalida.setText("");
+                } else if(contalinea == 3){
+                    textViewS03.setText(salida);
+                    contalinea=4;
+
+                    String i = textViewTotal1.getText().toString();
+                    int ii = Integer.parseInt(i);
+                    resultado3 = cant*price+ii;
+                    textViewTotal1.setText(""+resultado3);
+
+                    textView1.setText("Mesa");
+                    textView2.setText("Cuenta");
+                    textView3.setText("Producto");
+                    textView4.setText("Cantidad");
+                    textViewSalida.setText("");
+                } else if(contalinea == 4){
+                    textViewS04.setText(salida);
+                    contalinea=5;
+
+                     String i = textViewTotal1.getText().toString();
+                     int ii = Integer.parseInt(i);
+                     resultado4 = cant*price+ii;
+                      textViewTotal1.setText(""+resultado4);
+
+
+                    textView1.setText("Mesa");
+                    textView2.setText("Cuenta");
+                    textView3.setText("Producto");
+                    textView4.setText("Cantidad");
+                    textViewSalida.setText("");
+                } else if(contalinea == 5){
+                    textViewS05.setText(salida);
+                    contalinea=1;
+
+                     String i = textViewTotal1.getText().toString();
+                     int ii = Integer.parseInt(i);
+                      resultado5 = cant*price+ii;
+                      textViewTotal1.setText(""+resultado5);
+
+
+                    textView1.setText("Mesa");
+                    textView2.setText("Cuenta");
+                    textView3.setText("Producto");
+                    textView4.setText("Cantidad");
+                    textViewSalida.setText("");
+                }
+            }
+        } //botonverde
+    } //OnClick
+
+} //Activity Main
+
+*************************************************************************************************************************8
+
+package com.example.factura;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import androidx.annotation.Nullable;
+
+public class SQLiteBaseHelper extends SQLiteOpenHelper {
+    public SQLiteBaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase BaseDeDatos) {
+        BaseDeDatos.execSQL("create table stock(codigo int primary key, nombre text, precio int)");
+        BaseDeDatos.execSQL("insert into stock(codigo, nombre, precio) values(1, 'Agua', 10),(2, 'Jugo', 30),(3, 'Refresco', 25)");
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+
+    }
 }
-
-echo json_encode($response);
